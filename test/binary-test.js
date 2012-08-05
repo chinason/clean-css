@@ -3,15 +3,23 @@ var vows = require('vows'),
   exec = require('child_process').exec,
   fs = require('fs');
 
+var lineBreak = /win/.test(process.platform) ? /\r\n/g : /\n/g;
+
 var binaryContext = function(options, context) {
   context.topic = function() {
     // We add __DIRECT__=1 to switch binary into 'non-piped' mode
-    exec("__DIRECT__=1 ./bin/cleancss " + options, this.callback);
+    if (/win/.test(process.platform))
+      exec("set __DIRECT__=1 & node .\\bin\\cleancss " + options, this.callback);
+    else
+      exec("__DIRECT__=1; ./bin/cleancss " + options, this.callback);
   };
   return context;
 };
 
 var pipedContext = function(css, options, context) {
+  if (/win/.test(process.platform))
+    return {};
+
   context.topic = function() {
     exec("echo \"" + css + "\" | ./bin/cleancss " + options, this.callback);
   };
@@ -25,7 +33,7 @@ exports.commandsSuite = vows.describe('binary commands').addBatch({
     }
   }),
   'help': binaryContext('-h', {
-    'should output help': function(error, stdout) {
+    'should output help': function(error, stdout, stderr) {
       assert.equal(/usage:/.test(stdout), true);
     }
   }),
@@ -52,7 +60,7 @@ exports.commandsSuite = vows.describe('binary commands').addBatch({
   }),
   'from source': binaryContext('./test/data/reset.css', {
     'should minimize': function(error, stdout) {
-      var minimized = fs.readFileSync('./test/data/reset-min.css', 'utf-8').replace(/\n/g, '');
+      var minimized = fs.readFileSync('./test/data/reset-min.css', 'utf-8').replace(lineBreak, '');
       assert.equal(stdout, minimized);
     }
   }),
@@ -61,8 +69,8 @@ exports.commandsSuite = vows.describe('binary commands').addBatch({
       assert.equal(stdout, '');
     },
     'should minimize': function(stdout) {
-      var minimized = fs.readFileSync('./test/data/reset-min.css', 'utf-8').replace(/\n/g, '');
-      var target = fs.readFileSync('./reset-min.css', 'utf-8').replace(/\n/g, '');
+      var minimized = fs.readFileSync('./test/data/reset-min.css', 'utf-8').replace(lineBreak, '');
+      var target = fs.readFileSync('./reset-min.css', 'utf-8').replace(lineBreak, '');
       assert.equal(minimized, target);
     },
     teardown: function() {
