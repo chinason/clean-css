@@ -3,21 +3,22 @@ var vows = require('vows'),
   exec = require('child_process').exec,
   fs = require('fs');
 
-var lineBreak = /win/.test(process.platform) ? /\r\n/g : /\n/g;
+var isWindows = process.platform == 'win32',
+  lineBreak = isWindows ? /\r\n/g : /\n/g;
 
 var binaryContext = function(options, context) {
   context.topic = function() {
     // We add __DIRECT__=1 to switch binary into 'non-piped' mode
-    if (/win/.test(process.platform))
+    if (isWindows)
       exec("set __DIRECT__=1 & node .\\bin\\cleancss " + options, this.callback);
     else
-      exec("__DIRECT__=1; ./bin/cleancss " + options, this.callback);
+      exec("__DIRECT__=1 ./bin/cleancss " + options, this.callback);
   };
   return context;
 };
 
 var pipedContext = function(css, options, context) {
-  if (/win/.test(process.platform))
+  if (isWindows)
     return {};
 
   context.topic = function() {
