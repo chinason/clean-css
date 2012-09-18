@@ -134,6 +134,7 @@ vows.describe('clean-units').addBatch({
     ],
     'comment chars in comments': [
       '/* \r\n comment chars * inside / comments */a{color:#fff}',
+      '/*/ comment chars / after * */',
       'a{color:#fff}'
     ],
     'comment inside block': [
@@ -147,10 +148,6 @@ vows.describe('clean-units').addBatch({
     'should keep exact structure': [
       '/*!  \n  a > span { } with some content */',
       '/*!  \n  a > span { } with some content */'
-    ],
-    'block comments with slash decoration': [
-      '/*////////////////////////////////*/',
-      '/* //////////////////////////////// */'
     ]
   }),
   'text content': cssContext({
